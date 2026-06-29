@@ -1,0 +1,118 @@
+/* src/pages/upload.css */
+
+.upload-wrapper {
+  width: 100%;
+  max-width: 600px;
+  padding: var(--spacing-lg);
+}
+
+.upload-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.upload-header {
+  margin-bottom: var(--spacing-lg);
+}
+
+.upload-header h2 {
+  font-size: 22px;
+  margin-bottom: var(--spacing-sm);
+}
+
+.upload-header p {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/* The Drag and Drop Area */
+.dropzone {
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 40px 20px;
+  text-align: center;
+  background-color: var(--bg-dark);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: var(--spacing-lg);
+}
+
+.dropzone:hover {
+  border-color: var(--primary-accent);
+  background-color: rgba(59, 130, 246, 0.05); /* Slight blue tint */
+}
+
+.dropzone p {
+  color: var(--text-main);
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.dropzone span {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+/* Hidden file input */
+.file-input {
+  display: none;
+}
+
+/* File Tree Preview */
+.file-preview {
+  background-color: var(--bg-dark);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.file-preview h3 {
+  font-size: 14px;
+  margin-bottom: 12px;
+  color: var(--primary-accent);
+}
+
+.file-list {
+  list-style: none;
+}
+
+.file-list li {
+  font-size: 13px;
+  color: var(--text-muted);
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border-color);
+  font-family: monospace;
+}
+
+.file-list li:last-child {
+  border-bottom: none;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: var(--primary-accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.submit-btn:disabled {
+  background-color: var(--border-color);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background-color: var(--primary-hover);
+}
