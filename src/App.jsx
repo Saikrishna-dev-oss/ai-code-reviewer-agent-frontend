@@ -1,14 +1,3 @@
-// import './App.jsx'
-// import LoginScreen from './loginScreen.jsx'
-
-// export default function App() {
-//   return (
-//     <div className="App">
-//       <LoginScreen />
-//     </div>
-//   )
-// }
-
 import './styles/global.css';
 import { useState } from 'react';
 
