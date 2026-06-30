@@ -1,5 +1,6 @@
 // src/pages/review.jsx
 import { useState, useEffect } from 'react';
+import { fetchAiReview } from '../services/api'; // Import our new network service
 import './review.css';
 
 export default function Review({ files, onReset }) {
@@ -7,40 +8,25 @@ export default function Review({ files, onReset }) {
   const [aiResponse, setAiResponse] = useState(null);
   const [error, setError] = useState('');
 
-  // 1. Trigger the API call as soon as this component mounts
   useEffect(() => {
-    const fetchReview = async () => {
+    // We define an async function inside useEffect to handle the network call
+    const getReviewData = async () => {
       try {
-        // Ensure your FastAPI backend is running on port 8000!
-        const response = await fetch('http://localhost:8000/review', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          // We send the list of extracted files to the backend
-          body: JSON.stringify({ files: files })
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to communicate with AI Agent');
-        }
-
-        const data = await response.json();
+        setLoading(true);
+        // We call our clean abstracted service here
+        const data = await fetchAiReview(files);
         setAiResponse(data);
-        
       } catch (err) {
-        console.error("Network Error:", err);
-        setError("Could not connect to the backend. Is your FastAPI server running?");
+        setError(err.message);
       } finally {
-        // Add a fake 1.5-second delay just so you can see the cool loading spinner
-        setTimeout(() => {
-          setLoading(false);
-        }, 1500);
+        setLoading(false);
       }
     };
 
-    fetchReview();
-  }, [files]); // The empty dependency array ensures this only runs once
+    if (files && files.length > 0) {
+      getReviewData();
+    }
+  }, [files]); 
 
   return (
     <div className="review-wrapper">
@@ -57,7 +43,6 @@ export default function Review({ files, onReset }) {
           Targeting {files.length} source files for analysis.
         </div>
 
-        {/* Dynamic UI Rendering based on Network State */}
         {loading ? (
           <div className="loading-state">
             <div className="spinner"></div>
@@ -72,7 +57,6 @@ export default function Review({ files, onReset }) {
           <div className="output-box">
             <span className="output-label">Agent Output</span>
             <div className="output-text">
-              {/* Displaying the JSON response from your FastAPI backend */}
               {JSON.stringify(aiResponse, null, 2)}
             </div>
           </div>
