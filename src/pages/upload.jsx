@@ -1,6 +1,6 @@
 // src/pages/upload.jsx
 import { useState, useRef } from 'react';
-import { extractCodeFiles } from '../util/utilParser'; // Import our new utility
+import { extractCodeFiles } from '../util/utilParser'; 
 import './upload.css';
 
 export default function Upload({ onFilesProcessed }) {
