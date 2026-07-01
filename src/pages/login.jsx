@@ -14,16 +14,14 @@ export default function Login({ onLoginSuccess, onSwitchToRegister }) {
     setIsAuthenticating(true);
 
     try {
-      // 1. Query the JSON Server for a user matching this exact email and password
+      
       const response = await fetch(`http://localhost:5000/users?email=${email}&password=${password}`);
       
       if (!response.ok) throw new Error('Network response was not ok');
       
       const users = await response.json();
-
-      // 2. Check if a match was found
       if (users.length > 0) {
-        // Success! Pass the full user object (including their image) back to App.jsx
+        
         onLoginSuccess(users[0]);
       } else {
         setError('Invalid email or password. Please try again.');
