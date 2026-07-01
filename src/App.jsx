@@ -7,51 +7,6 @@ import Register from './pages/register.jsx'; // 1. Import the new screen
 import Upload from './pages/upload.jsx';
 import Review from './pages/review.jsx';
 
-// export default function App() {
-//   // Available Steps: 'login' | 'register' | 'upload' | 'review'
-//   const [currentStep, setCurrentStep] = useState('login');
-//   const [uploadedFiles, setUploadedFiles] = useState([]);
-
-//   const renderScreen = () => {
-//     switch (currentStep) {
-//       case 'login':
-//         return (
-//           <Login 
-//             onLoginSuccess={() => setCurrentStep('upload')} 
-//             onSwitchToRegister={() => setCurrentStep('register')} // 2. Add route to register
-//           />
-//         );
-//       case 'register':
-//         return (
-//            // 3. Add the Register component and pass the route back to login
-//           <Register onSwitchToLogin={() => setCurrentStep('login')} />
-//         );
-//       case 'upload':
-//         return (
-//           <Upload 
-//             onFilesProcessed={(files) => {
-//               setUploadedFiles(files);
-//               setCurrentStep('review');
-//             }} 
-//           />
-//         );
-//       case 'review':
-//         return <Review files={uploadedFiles} onReset={() => setCurrentStep('upload')} />;
-//       default:
-//         return <Login onLoginSuccess={() => setCurrentStep('upload')} />;
-//     }
-//   };
-
-//   return (
-//     <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-//       {renderScreen()}
-//     </main>
-//   );
-// }
-
-// src/App.jsx
-// ... keep your imports exactly the same
-
 export default function App() {
   const [currentStep, setCurrentStep] = useState('login');
   const [uploadedFiles, setUploadedFiles] = useState([]);

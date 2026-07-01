@@ -1,18 +1,17 @@
 // src/pages/register.jsx
 import { useState, useRef } from 'react';
-import './login.css'; // We can reuse the login CSS for the card layout!
+import './login.css'; 
 
 export default function Register({ onSwitchToLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [profileImage, setProfileImage] = useState(null); // Stores the Base64 image
+  const [profileImage, setProfileImage] = useState(null); // Storing the Base64 image
   const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState('');
 
   const fileInputRef = useRef(null);
 
-  // 1. Handle the Image Upload
-  // 1. Handle the Image Upload & Compression
+  // 1. Image Upload & Compression
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -46,7 +45,7 @@ export default function Register({ onSwitchToLogin }) {
     };
     reader.readAsDataURL(file);
   };
-  // 2. Handle the Form Submission
+  // 2. Handles Form Submission
   const handleRegister = async (e) => {
     e.preventDefault();
     if (!email || !password || !profileImage) {
@@ -58,7 +57,7 @@ export default function Register({ onSwitchToLogin }) {
     setError('');
 
     try {
-      // POST the new user to our JSON Server
+      // POSTING the new user to our JSON Server
       const response = await fetch('http://localhost:5000/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -72,7 +71,7 @@ export default function Register({ onSwitchToLogin }) {
       if (!response.ok) throw new Error('Registration failed');
 
       alert("Registration successful! You can now log in.");
-      onSwitchToLogin(); // Route them back to the login screen
+      onSwitchToLogin(); //Baack to login screen after successful registration
       
     } catch (err) {
       setError("Database Error: Is your JSON server running on port 5000?");

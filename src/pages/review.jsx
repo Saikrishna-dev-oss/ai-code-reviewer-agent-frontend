@@ -1,6 +1,6 @@
 // src/pages/review.jsx
 import { useState, useEffect } from 'react';
-import { fetchAiReview } from '../services/api'; // Import our new network service
+import { fetchAiReview } from '../services/api'; // Import network service
 import './review.css';
 
 export default function Review({ files, onReset }) {
