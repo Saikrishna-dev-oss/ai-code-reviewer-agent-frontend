@@ -1,0 +1,69 @@
+/* src/pages/profile.module.css */
+.profile-wrapper {
+  width: 100%;
+  max-width: 500px;
+  background-color: var(--bg-card);
+  padding: 32px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  text-align: center;
+}
+
+.profile-header h2 {
+  font-size: 24px;
+  margin-bottom: 8px;
+  color: var(--text-main);
+}
+
+.profile-header p {
+  color: var(--text-muted);
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+.avatar-preview {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--primary-accent);
+  margin: 0 auto 24px auto;
+  display: block;
+}
+
+.file-input-label {
+  display: inline-block;
+  background-color: rgba(59, 130, 246, 0.1);
+  color: var(--primary-accent);
+  border: 1px solid var(--primary-accent);
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  margin-bottom: 24px;
+}
+
+.file-input-label:hover {
+  background-color: var(--primary-accent);
+  color: white;
+}
+
+.save-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: var(--primary-accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.save-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

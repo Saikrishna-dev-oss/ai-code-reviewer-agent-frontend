@@ -7,6 +7,7 @@ import Register from './pages/register.jsx';
 import Upload from './pages/upload.jsx';
 import Dashboard from './pages/dashboard.jsx'; 
 import Review from './pages/review.jsx';
+import Profile from './pages/profile.jsx';
 
 export default function App() {
   const [currentStep, setCurrentStep] = useState('login');
@@ -73,6 +74,15 @@ export default function App() {
             }} 
           />
         );
+      case 'profile':
+        return (
+          <Profile 
+            currentUser={currentUser} 
+            // When the profile saves updating the global memory so the header image changes instantly
+            onUpdateSuccess={(updatedUser) => setCurrentUser(updatedUser)}
+            onBack={() => setCurrentStep('upload')} // Go back to the main dashboard
+          />
+        );
       default:
         return <Login onLoginSuccess={() => setCurrentStep('upload')} />;
     }
@@ -114,20 +124,31 @@ export default function App() {
             )}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <span style={{ color: 'var(--text-muted)', fontSize: '14px' }}>{currentUser.email}</span>
-            <img 
-              src={currentUser.profileImage} 
-              alt="Profile" 
-              style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--primary-accent)' }} 
-            />
-            <button 
-              onClick={handleLogout} 
-              style={{ background: 'none', border: '1px solid var(--border-color)', color: 'var(--text-main)', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer' }}
-            >
-              Logout
-            </button>
-          </div>
+          {/* Right Side of the Header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        
+        {/* 🚀 NEW: My Account Button */}
+        <button 
+          onClick={() => setCurrentStep('profile')} 
+          style={{ background: 'none', border: 'none', color: 'var(--primary-accent)', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }}
+        >
+          My Account
+        </button>
+
+        <span style={{ color: 'var(--text-muted)', fontSize: '14px' }}>{currentUser.email}</span>
+        <img 
+          src={currentUser.profileImage} 
+          alt="Profile" 
+          style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--primary-accent)' }} 
+        />
+        <button 
+          onClick={handleLogout} 
+          style={{ background: 'none', border: '1px solid var(--border-color)', color: 'var(--text-main)', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer' }}
+        >
+          Logout
+        </button>
+      </div>
+
         </header>
       )}
 
