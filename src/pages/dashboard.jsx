@@ -4,7 +4,7 @@
 // It provides metrics (file count, lines of code) and a pie chart visualization of file categories.
 // Includes UX, accessibility, and safety fixes for a smoother user experience.
 
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import './upload.css'; 
 
