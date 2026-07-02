@@ -116,3 +116,52 @@
 .submit-btn:hover:not(:disabled) {
   background-color: var(--primary-hover);
 }
+/* src/pages/upload.css (Add these to the bottom) */
+
+/* Dashboard Specific Styles */
+.dashboard-metrics-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.metric-card {
+  flex: 1;
+  background-color: var(--bg-dark);
+  padding: 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  text-align: center;
+}
+
+.metric-label {
+  display: block;
+  color: var(--text-muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.metric-value {
+  font-size: 28px;
+  font-weight: bold;
+  color: var(--text-main);
+}
+
+.chart-container {
+  height: 350px;
+  width: 100%;
+  background-color: var(--bg-dark);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  padding: 16px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-muted);
+  background-color: var(--bg-dark);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border-color);
+}
