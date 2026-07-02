@@ -1,10 +1,11 @@
-// // src/App.jsx
+// src/App.jsx
 import { useState } from 'react';
 import './styles/global.css';
 
 import Login from './pages/login.jsx';
-import Register from './pages/register.jsx'; // 1. Import the new screen
+import Register from './pages/register.jsx';
 import Upload from './pages/upload.jsx';
+import Dashboard from './pages/dashboard.jsx'; 
 import Review from './pages/review.jsx';
 
 export default function App() {
@@ -18,6 +19,7 @@ export default function App() {
     setCurrentStep('login');
   };
 
+  // State Machine Routing: I am managing the component lifecycle here based on the current step.
   const renderScreen = () => {
     switch (currentStep) {
       case 'login':
@@ -37,16 +39,28 @@ export default function App() {
           <Upload 
             onFilesProcessed={(files) => {
               setUploadedFiles(files);
-              setCurrentStep('review');
+              // Pipeline Interception: Instead of jumping straight to the Review screen, 
+              // we now hand off the extracted file data to the Dashboard for visual analysis first.
+              setCurrentStep('dashboard'); 
             }} 
+          />
+        );
+      case 'dashboard':
+        return (
+          // Rendering the new analytical dashboard. 
+          // onProceed moves them forward to the AI review, onBack lets them re-upload.
+          <Dashboard 
+            files={uploadedFiles} 
+            onProceed={() => setCurrentStep('review')}
+            onBack={() => setCurrentStep('upload')} 
           />
         );
       case 'review':
         return (
           <Review 
             files={uploadedFiles} 
-            // HERE: Pass a function that lets them back out of the review screen safely
-            onReset={() => setCurrentStep('upload')} 
+            // We now send them back to the Dashboard instead of Upload if they reset from the Review screen
+            onReset={() => setCurrentStep('dashboard')} 
           />
         );
       default:
@@ -58,25 +72,34 @@ export default function App() {
     <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       {currentUser && (
         <header style={{ 
-          padding: '16px 32px', display: 'flex', justifyContent: 'space-between', // Changed to space-between
+          padding: '16px 32px', display: 'flex', justifyContent: 'space-between', 
           alignItems: 'center', borderBottom: '1px solid var(--border-color)' 
         }}>
-          {/* App-controlled Back Button for the Ingestion Workflow */}
+          {/* Header Navigation Logic: Dynamically rendering back buttons based on current state */}
           <div>
             {currentStep === 'upload' && (
               <button 
-                onClick={handleLogout} // Going back from upload logs you out securely
+                onClick={handleLogout} 
                 style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '14px' }}
               >
                 ← Back to Login
               </button>
             )}
-            {currentStep === 'review' && (
+            {/* Added: Navigation fallback for the new Dashboard step */}
+            {currentStep === 'dashboard' && (
               <button 
-                onClick={() => setCurrentStep('upload')} // Going back from review takes you back to drag-drop
+                onClick={() => setCurrentStep('upload')} 
                 style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '14px' }}
               >
                 ← Back to Upload
+              </button>
+            )}
+            {currentStep === 'review' && (
+              <button 
+                onClick={() => setCurrentStep('dashboard')} // Adjusted to go back to Dashboard
+                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '14px' }}
+              >
+                ← Back to Dashboard
               </button>
             )}
           </div>
