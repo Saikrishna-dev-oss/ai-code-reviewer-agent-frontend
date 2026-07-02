@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { fetchAiReview } from '../services/api'; // Import network service
 import './review.css';
 
-export default function Review({ files, onReset,}) {
+export default function Review({ files, onReset }) {
   const [loading, setLoading] = useState(true);
   const [aiResponse, setAiResponse] = useState(null);
   const [error, setError] = useState('');

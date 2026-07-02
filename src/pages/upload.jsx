@@ -8,18 +8,19 @@ export default function Upload({ onFilesProcessed }) {
   const [extractedFiles, setExtractedFiles] = useState([]);
   const [error, setError] = useState('');
   
+  // 🚀 NEW: State to track if a file is hovering over the dropzone
+  const [isDragging, setIsDragging] = useState(false);
+  
   const fileInputRef = useRef(null);
 
-  // 1. Cleaned up Event Handler
-  const handleFileChange = async (event) => {
-    const file = event.target.files[0];
+  // 1. Refactored Helper: Handles the file regardless of how it was uploaded (clicked or dragged)
+  const processSelectedFile = async (file) => {
     if (!file) return;
 
     setError('');
     setIsProcessing(true);
 
     try {
-      // We pass the file to our utility, and it hands us back the clean data!
       const parsedData = await extractCodeFiles(file);
       setExtractedFiles(parsedData);
     } catch (err) {
@@ -31,7 +32,43 @@ export default function Upload({ onFilesProcessed }) {
     }
   };
 
-  // 2. Trigger the transition to the Review screen
+  // 2. The Standard Click Handler
+  const handleFileChange = (event) => {
+    processSelectedFile(event.target.files[0]);
+  };
+
+  // 3. 🚀 The HTML5 Drag and Drop Handlers
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true); // Turn on the visual highlight
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false); // Turn off the visual highlight
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // CRITICAL: We must prevent default here, otherwise the browser will open the .zip file in a new tab!
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false); // Turn off the highlight
+
+    // Grab the dropped file from the OS and process it
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      processSelectedFile(e.dataTransfer.files[0]);
+      e.dataTransfer.clearData(); // Clean up memory
+    }
+  };
+
+  // 4. Trigger the transition to the Dashboard
   const handleSubmit = () => {
     if (extractedFiles.length > 0) {
       onFilesProcessed(extractedFiles);
@@ -47,28 +84,39 @@ export default function Upload({ onFilesProcessed }) {
           <p>Upload your project architecture for AI analysis.</p>
         </div>
 
+        {/* Hidden file input */}
         <input 
           type="file" 
           ref={fileInputRef} 
           className="file-input" 
           accept=".zip,.py,.js,.jsx,.sql" 
           onChange={handleFileChange}
+          style={{ display: 'none' }}
         />
 
-        <div className="dropzone" onClick={() => fileInputRef.current.click()}>
+        {/* 🚀 Updated Dropzone with the 4 drag events and dynamic class */}
+        <div 
+          className={`dropzone ${isDragging ? 'drag-active' : ''}`} 
+          onClick={() => fileInputRef.current.click()}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+        >
           {isProcessing ? (
-            <p>Processing Archive...</p>
+            <p style={{ color: 'var(--primary-accent)' }}>Decompressing Archive in Memory...</p>
           ) : (
             <>
-              <p>Click to browse or drag a file here</p>
-              <span>Accepts .zip, .py, .js, .jsx, .sql</span>
+              {/* Text changes dynamically when dragging! */}
+              <p>{isDragging ? 'Drop archive to ingest!' : 'Click to browse or drag a file here'}</p>
+              <span style={{ color: 'var(--text-muted)' }}>Accepts .zip, .py, .js, .jsx, .sql</span>
             </>
           )}
         </div>
 
         {error && <p style={{ color: '#ef4444', marginBottom: '16px', fontSize: '14px' }}>{error}</p>}
 
-        {/* Dynamic File Tree Preview (Inside upload.jsx) */}
+        {/* Dynamic File Tree Preview (Untouched) */}
         {extractedFiles.length > 0 && (
           <div className="file-preview">
             <h3>Detected {extractedFiles.length} files</h3>
@@ -106,10 +154,127 @@ export default function Upload({ onFilesProcessed }) {
           disabled={extractedFiles.length === 0 || isProcessing}
           onClick={handleSubmit}
         >
-          Run AI Code Review
+          Proceed to Architectural Dashboard →
         </button>
 
       </div>
     </div>
   );
 }
+
+
+// // src/pages/upload.jsx
+// import { useState, useRef } from 'react';
+// import { extractCodeFiles } from '../util/utilParser'; 
+// import './upload.css';
+
+// export default function Upload({ onFilesProcessed }) {
+//   const [isProcessing, setIsProcessing] = useState(false);
+//   const [extractedFiles, setExtractedFiles] = useState([]);
+//   const [error, setError] = useState('');
+  
+//   const fileInputRef = useRef(null);
+
+//   // 1. Cleaned up Event Handler
+//   const handleFileChange = async (event) => {
+//     const file = event.target.files[0];
+//     if (!file) return;
+
+//     setError('');
+//     setIsProcessing(true);
+
+//     try {
+//       // We pass the file to our utility, and it hands us back the clean data!
+//       const parsedData = await extractCodeFiles(file);
+//       setExtractedFiles(parsedData);
+//     } catch (err) {
+//       console.error(err);
+//       setError(err.message || 'Failed to process file.');
+//       setExtractedFiles([]);
+//     } finally {
+//       setIsProcessing(false);
+//     }
+//   };
+
+//   // 2. Trigger the transition to the Review screen
+//   const handleSubmit = () => {
+//     if (extractedFiles.length > 0) {
+//       onFilesProcessed(extractedFiles);
+//     }
+//   };
+
+//   return (
+//     <div className="upload-wrapper">
+//       <div className="upload-card">
+        
+//         <div className="upload-header">
+//           <h2>Source Code Ingestion</h2>
+//           <p>Upload your project architecture for AI analysis.</p>
+//         </div>
+
+//         <input 
+//           type="file" 
+//           ref={fileInputRef} 
+//           className="file-input" 
+//           accept=".zip,.py,.js,.jsx,.sql" 
+//           onChange={handleFileChange}
+//         />
+
+//         <div className="dropzone" onClick={() => fileInputRef.current.click()}>
+//           {isProcessing ? (
+//             <p>Processing Archive...</p>
+//           ) : (
+//             <>
+//               <p>Click to browse or drag a file here</p>
+//               <span>Accepts .zip, .py, .js, .jsx, .sql</span>
+//             </>
+//           )}
+//         </div>
+
+//         {error && <p style={{ color: '#ef4444', marginBottom: '16px', fontSize: '14px' }}>{error}</p>}
+
+//         {/* Dynamic File Tree Preview (Inside upload.jsx) */}
+//         {extractedFiles.length > 0 && (
+//           <div className="file-preview">
+//             <h3>Detected {extractedFiles.length} files</h3>
+//             <ul className="file-list">
+//               {extractedFiles.slice(0, 50).map((fileObj, index) => (
+//                 <li 
+//                   key={index} 
+//                   style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+//                 >
+//                   <span>{fileObj.fileName}</span>
+                  
+//                   {/* Render the Category Badge */}
+//                   <span style={{ 
+//                     fontSize: '11px', 
+//                     padding: '2px 8px', 
+//                     borderRadius: '12px', 
+//                     backgroundColor: 'rgba(59, 130, 246, 0.1)', 
+//                     color: 'var(--primary-accent)',
+//                     border: '1px solid var(--primary-accent)'
+//                   }}>
+//                     {fileObj.category}
+//                   </span>
+                  
+//                 </li>
+//               ))}
+//               {extractedFiles.length > 50 && (
+//                 <li>...and {extractedFiles.length - 50} more files</li>
+//               )}
+//             </ul>
+//           </div>
+//         )}
+
+//         <button 
+//           className="submit-btn" 
+//           disabled={extractedFiles.length === 0 || isProcessing}
+//           onClick={handleSubmit}
+//         >
+//           Run AI Code Review
+//         </button>
+
+//       </div>
+//     </div>
+//   );
+// }

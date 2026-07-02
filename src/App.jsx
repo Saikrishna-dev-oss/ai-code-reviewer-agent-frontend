@@ -55,12 +55,15 @@ export default function App() {
             onBack={() => setCurrentStep('upload')} 
           />
         );
+        // Inside App.jsx
       case 'review':
         return (
           <Review 
             files={uploadedFiles} 
-            // We now send them back to the Dashboard instead of Upload if they reset from the Review screen
-            onReset={() => setCurrentStep('dashboard')} 
+            onReset={() => {
+              setUploadedFiles([]);       // <--- 1. Clear the old data
+              setCurrentStep('upload');   // <--- 2. Send them back to the start
+            }} 
           />
         );
       default:

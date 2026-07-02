@@ -56,6 +56,13 @@
   font-size: 12px;
 }
 
+.dropzone.drag-active {
+  border-color: var(--primary-accent);
+  background-color: rgba(59, 130, 246, 0.1);
+  transform: scale(1.02);
+  transition: all 0.2s ease;
+}
+
 /* Hidden file input */
 .file-input {
   display: none;
