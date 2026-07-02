@@ -12,11 +12,18 @@ export default function App() {
   const [currentStep, setCurrentStep] = useState('login');
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
+  
+  // New State to hold the temporary toast message
+  const [toastMessage, setToastMessage] = useState('');
 
   const handleLogout = () => {
     setCurrentUser(null);
     setUploadedFiles([]);
     setCurrentStep('login');
+
+    setToastMessage('Session securely closed. You have been logged out.');
+    // Clear the toast message after 3 seconds
+    setTimeout(() => setToastMessage(''), 3000);
   };
 
   // State Machine Routing: I am managing the component lifecycle here based on the current step.
@@ -127,6 +134,13 @@ export default function App() {
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {renderScreen()}
       </div>
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="toast-notification">
+          {toastMessage}
+        </div>
+      )}
     </main>
   );
 }

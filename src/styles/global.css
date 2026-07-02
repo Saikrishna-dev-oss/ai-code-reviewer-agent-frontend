@@ -3,9 +3,9 @@
 :root {
   /* Color Palette */
   --bg-dark: #0f1117;
-  --bg-card: #1a1d24;
-  --primary-accent: #3b82f6; /* Modern Blue */
-  --primary-hover: #2563eb;
+  --bg-card: #c5c9d1;
+  --primary-accent: #3fe6cd; 
+  --primary-hover: #e5eb25;
   --text-main: #f3f4f6;
   --text-muted: #9ca3af;
   --border-color: #2d3139;
@@ -31,4 +31,31 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+}
+
+/* 🚀 Toast Notification System */
+.toast-notification {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #60ee75;
+  color: rgb(13, 12, 12);
+  padding: 12px 24px;
+  border-radius: var(--radius-md, 8px);
+  box-shadow: 0 4px 20px rgba(54, 39, 48, 0.3);
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 9999;
+  
+  /* Link the new animation and set it to run for exactly 3 seconds */
+  animation: fadeInOut 3s ease-in-out forwards; 
+}
+
+/* Your new entrance and exit animation */
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translate(-50%, 20px); }
+  10% { opacity: 1; transform: translate(-50%, 0); }
+  90% { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, 20px); }
 }
