@@ -2,9 +2,9 @@
 
 :root {
   /* Color Palette */
-  --bg-dark: #0f1117;
-  --bg-card: #c5c9d1;
-  --primary-accent: #3fe6cd; 
+  --bg-card: #1a1d24;
+  --primary-accent: #3b82f6; /* Modern Blue */
+  --primary-hover: #2563eb;
   --primary-hover: #e5eb25;
   --text-main: #f3f4f6;
   --text-muted: #9ca3af;
