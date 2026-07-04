@@ -2,7 +2,7 @@
 
 A full-stack, end-to-end application designed to ingest, categorize, and visually analyze software repositories before submitting them for an AI-driven code review. 
 
-This project was built with a strict focus on first-principles engineering, modular architecture, and premium user experience (UX).
+This project was built with a strict focus on first-principles engineering, modular architecture, and a good UX .
 
 ## ✨ Core Features
 
