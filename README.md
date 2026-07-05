@@ -37,7 +37,7 @@ This project was built with a strict focus on first-principles engineering, modu
 **Backend (API)**
 * Python 3
 * FastAPI
-* Uvicorn (ASGI Server)
+* Uvicorn
 
 **Database / Mock API**
 * JSON Server (REST API for Users)
