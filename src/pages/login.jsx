@@ -76,7 +76,7 @@ export default function Login({ onLoginSuccess, onSwitchToRegister }) {
             type="button" onClick={onSwitchToRegister} 
             style={{ background: 'none', border: 'none', color: 'var(--primary-accent)', cursor: 'pointer', fontSize: '14px' }}
           >
-            Don't have an account? <b style={{ color: 'var(--primary-accent)' }}>Create one</b>
+            Don't have an account? <b style={{ color: 'var(--primary-accent)' }}>Register</b>
           </button>
         </div>
       </div>
