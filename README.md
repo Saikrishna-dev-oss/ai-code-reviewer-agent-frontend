@@ -127,6 +127,7 @@ npm run dev
 ├── eslint.config.js
 ├── index.html
 └── package-lock.json
+```
 
 ## 📜 LICENSE
 
