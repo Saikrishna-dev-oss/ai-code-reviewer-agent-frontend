@@ -1,5 +1,5 @@
 // src/App.jsx
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import './styles/global.css';
 
 import Login from './pages/login.jsx';
@@ -13,9 +13,21 @@ export default function App() {
   const [currentStep, setCurrentStep] = useState('login');
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('app-theme') || 'dark';
+  });
   
   // New State to hold the temporary toast message
   const [toastMessage, setToastMessage] = useState('');
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('app-theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((previousTheme) => previousTheme === 'dark' ? 'light' : 'dark');
+  };
 
   const handleLogout = () => {
     setCurrentUser(null);
@@ -90,6 +102,15 @@ export default function App() {
 
   return (
     <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <button
+        type="button"
+        className="theme-toggle-btn"
+        onClick={toggleTheme}
+        aria-label="Toggle dark and light theme"
+      >
+        {theme === 'dark' ? '☀️ Light' : '🌙 Dark'}
+      </button>
+
       {currentUser && (
         <header style={{ 
           padding: '16px 32px', display: 'flex', justifyContent: 'space-between', 
