@@ -2,27 +2,27 @@
 
 A full-stack, end-to-end application designed to ingest, categorize, and visually analyze software repositories before submitting them for an AI-driven code review. 
 
-This project was built with a strict focus on first-principles engineering, modular architecture, and a good UX .
+This project was built with a strict focus on first-principles engineering, modular architecture, and a production-grade user experience.
 
 ## ✨ Core Features
 
 ### 🛡️ Secure User Management
-* **Authentication Pipeline:** Full Login and Registration flow utilizing a local `json-server` mock database.
-* **Profile Management:** Users can upload profile avatars. 
-* **Client-Side Optimization:** Implemented HTML5 `<canvas>` compression to resize and compress profile images in the browser before sending to the database, bypassing standard payload limits.
+* **Authentication Pipeline:** Full Login and Registration flow utilizing a secure, local SQLite database with SHA-256 cryptographic salting and hashing.
+* **Profile Management:** Users can upload profile avatars seamlessly. 
+* **Client-Side Optimization:** Implemented HTML5 `<canvas>` compression to resize and compress profile images in the browser before sending to the database, bypassing standard network payload limits.
 
 ### 📦 Zero-Friction Code Ingestion
-* **True Drag-and-Drop:** Native HTML5 drag-and-drop file support with visual hover feedback.
+* **True Drag-and-Drop:** Native HTML5 drag-and-drop file support with reactive visual hover feedback.
 * **In-Memory Extraction:** Utilizes `JSZip` to decompress user `.zip` files entirely within the browser's memory, completely eliminating the risk of crashing the backend server with massive file payloads.
 
 ### 📊 Architectural Dashboard
 * **Dynamic Visualization:** Uses `Recharts` to generate an interactive donut chart breaking down the codebase by file type (e.g., Backend Scripts, UI Components).
-* **Deep Metrics:** Calculates total lines of code (LOC) and provides a scrollable, nested view of the ingested file directory.
-* **State Machine Routing:** A tightly controlled React state machine that routes the user gracefully from upload, to analysis, to the final AI review.
+* **Deep Metrics:** Calculates total lines of code (LOC) and provides a scrollable, nested view of the ingested file directory structure.
+* **State Machine Routing:** A tightly controlled React state machine that routes the user gracefully from upload, to analysis, to the final AI review response.
 
 ### 🔗 FastAPI Backend Integration
-* **RESTful Architecture:** Cleanly separated `src/services/api.js` layer managing network requests to a Python-based FastAPI backend.
-* **Scalable AI Endpoint:** Backend prepared to receive parsed repository architectures and return AI-generated code reviews.
+* **RESTful Architecture:** Cleanly separated `src/services/api.js` network layer managing API payloads to a Python-based FastAPI backend.
+* **Robust Middlewares & Logging:** Built-in global exception filters and a custom SQLite logging handler that tracks API response times and errors chronologically.
 
 ---
 
@@ -34,13 +34,12 @@ This project was built with a strict focus on first-principles engineering, modu
 * Recharts (Data visualization)
 * Scoped CSS Architecture
 
-**Backend (API)**
+**Backend (API & Database)**
 * Python 3
-* FastAPI
-* Uvicorn
+* FastAPI & Uvicorn
+* SQLite3 (Embedded Database with custom application logging framework)
 
-**Database / Mock API**
-* JSON Server (REST API for Users)
+---
 
 ---
 ## 🚀 Local Installation & Setup
@@ -68,20 +67,8 @@ pip install fastapi uvicorn
 uvicorn main:app --reload
 ```
 
-### 2. Start the Mock Database (Terminal 2)
-This runs the local JSON server to handle user login and registration data.
-```bash
-# Clone the frontend repository
-git clone https://github.com/Saikrishna-dev-oss/ai-code-reviewer-agent-frontend.git
 
-# Navigate to your frontend directory
-cd ai-code-reviewer-agent-frontend
-
-# Start JSON server on port 5000
-npx json-server --watch db.json --port 5000
-```
-
-### 3. Start the React Frontend (Terminal 3)
+### 2. Start the React Frontend (Terminal 2)
 This runs the React frontend application.
 ```bash
 # Navigate to your frontend directory
@@ -94,7 +81,7 @@ npm install
 npm run dev
 ```
 
-## 4. 📂 Architecture Overview
+## 📂 Architecture Overview
 ```
  FRONTEND/
 ├── node_modules/
