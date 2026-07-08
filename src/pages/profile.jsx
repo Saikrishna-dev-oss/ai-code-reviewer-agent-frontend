@@ -50,7 +50,7 @@ export default function Profile({ currentUser, onUpdateSuccess, onBack }) {
 
     try {
       // We use PATCH to only update the profileImage field, leaving email/password alone
-      const response = await fetch(`http://localhost:5000/users/${currentUser.id}`, {
+      const response = await fetch(`http://localhost:8000/users/${currentUser.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ profileImage: newImage }),
