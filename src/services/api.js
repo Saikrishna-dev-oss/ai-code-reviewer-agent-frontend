@@ -7,9 +7,8 @@ const API_BASE_URL = 'http://localhost:8000';
  * @param {Array} files - Array of { fileName, code } objects.
  * @returns {Promise<Object>} - The AI JSON response.
  */
-export const fetchAiReview = async (files) => {
+export const fetchAiReview = async (files, onChunk) => {
   try {
-    // 🚀 THE FIX: Normalize all incoming data (Zip or GitHub) to strictly match FastAPI's Pydantic schema
     const normalizedFiles = files.map(f => ({
       fileName: f.fileName || f.name || "Unknown File",
       content: f.content || f.code || "// No content",
@@ -22,7 +21,6 @@ export const fetchAiReview = async (files) => {
       headers: {
         'Content-Type': 'application/json',
       },
-      // Send the normalized data
       body: JSON.stringify({ files: normalizedFiles }),
     });
 
@@ -31,8 +29,24 @@ export const fetchAiReview = async (files) => {
       throw new Error(errorData.message || `Server error: ${response.status}`);
     }
 
-    const data = await response.json();
-    return data; 
+    // 🚀THE STREAM READER
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let fullText = "";
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break; // Stream is finished
+      
+      // Decode the byte array into a string chunk
+      const chunk = decoder.decode(value, { stream: true });
+      fullText += chunk;
+      
+      // Fire the callback to update the UI instantly
+      onChunk(fullText);
+    }
+    
+    return fullText; 
   } catch (error) {
     throw new Error(error.message || 'Failed to fetch AI review from backend.', { cause: error });
   }

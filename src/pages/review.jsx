@@ -1,5 +1,6 @@
 // src/pages/review.jsx
 import { useState, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown'; 
 import { fetchAiReview } from '../services/api'; 
 import './review.css';
 
@@ -12,11 +13,16 @@ export default function Review({ files, onReset }) {
     const getReviewData = async () => {
       try {
         setLoading(true);
-        const data = await fetchAiReview(files);
-        setAiResponse(data);
+        setAiResponse({ review: "" }); // Clear previous text
+
+        // Passing our onChunk callback to catch the streaming text
+        await fetchAiReview(files, (streamedText) => {
+          setLoading(false); // Turning off spinner as soon as typing begins
+          setAiResponse({ review: streamedText });
+        });
+
       } catch (err) {
         setError(err.message);
-      } finally {
         setLoading(false);
       }
     };
@@ -56,14 +62,14 @@ export default function Review({ files, onReset }) {
             <span className="output-label">
               {aiResponse?.status === 'mock' ? 'Agent Output (Mock Mode)' : 'Agent Output'}
             </span>
-            <div className="output-text" style={{ 
-              whiteSpace: 'pre-wrap', 
-              lineHeight: '1.6',
-              fontFamily: 'var(--font-mono, monospace)',
-              fontSize: '14px'
-            }}>
-              {aiResponse?.review ? aiResponse.review : 'No review data returned.'}
+            
+            {/*ReactMarkdown handle the string parsing */}
+            <div className="output-text markdown-container">
+              <ReactMarkdown>
+                {aiResponse?.review || 'No review data returned.'}
+              </ReactMarkdown>
             </div>
+
           </div>
         )}
 
