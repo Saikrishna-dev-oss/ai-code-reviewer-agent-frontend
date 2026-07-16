@@ -15,7 +15,6 @@ export default function Login({ onLoginSuccess, onSwitchToRegister }) {
 
     try {
       
-      // const response = await fetch(`http://localhost:8000/users?email=${email}&password=${password}`);
       const response = await fetch(`http://localhost:8000/users?email=${email}&password=${password}`);
       
       if (!response.ok) throw new Error('Network response was not ok');
@@ -29,7 +28,7 @@ export default function Login({ onLoginSuccess, onSwitchToRegister }) {
       }
     } catch (err) {
       console.error(err);
-      setError('Database error: Is JSON Server running?');
+      setError('Database error..?');
     } finally {
       setIsAuthenticating(false);
     }

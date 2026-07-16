@@ -1,25 +1,78 @@
 // src/pages/upload.jsx
 import { useState, useRef } from 'react';
 import { extractCodeFiles } from '../util/utilParser'; 
+import { ingestGitHubRepo } from '../services/api'; // Make sure this path is correct!
 import './upload.css';
+import { FaGithub } from "react-icons/fa";
 
+// Add this helper function at the top, outside the main component
+const determineCategory = (fileName) => {
+  // Edge Case: Files without extensions (like Dockerfile or LICENSE)
+  if (!fileName.includes('.')) {
+    if (fileName.toLowerCase().includes('license')) return 'Legal / Licensing';
+    if (fileName.toLowerCase().includes('docker')) return 'DevOps / Config';
+    return 'System File';
+  }
+
+  const ext = fileName.split('.').pop().toLowerCase();
+  
+  // Test Case Coverage for standard extensions
+  switch (ext) {
+    case 'js':
+    case 'jsx':
+    case 'ts':
+    case 'tsx':
+    case 'css':
+    case 'html':
+      return 'Frontend / UI';
+    case 'py':
+    case 'java':
+    case 'cpp':
+    case 'c':
+    case 'go':
+    case 'rs':
+      return 'Backend / Logic';
+    case 'json':
+    case 'yaml':
+    case 'yml':
+    case 'env':
+    case 'gitignore':
+    case 'toml':
+      return 'Configuration';
+    case 'md':
+    case 'txt':
+      return 'Documentation';
+    case 'sql':
+    case 'db':
+      return 'Database / Schema';
+    case 'sh':
+    case 'bat':
+      return 'Scripts';
+    default:
+      return 'Other Assets';
+  }
+};
 export default function Upload({ onFilesProcessed }) {
+  // 🚀 Core State
+  const [activeTab, setActiveTab] = useState('zip'); // 'zip' or 'github'
   const [isProcessing, setIsProcessing] = useState(false);
   const [extractedFiles, setExtractedFiles] = useState([]);
   const [error, setError] = useState('');
   
-  // 🚀 NEW: State to track if a file is hovering over the dropzone
+  // Zip State
   const [isDragging, setIsDragging] = useState(false);
-  
   const fileInputRef = useRef(null);
 
-  // 1. Refactored Helper: Handles the file regardless of how it was uploaded (clicked or dragged)
+  // GitHub State
+  const [githubUrl, setGithubUrl] = useState('');
+
+  // -------------------------------------------------------------
+  // 1. ZIP / LOCAL FILE LOGIC
+  // -------------------------------------------------------------
   const processSelectedFile = async (file) => {
     if (!file) return;
-
     setError('');
     setIsProcessing(true);
-
     try {
       const parsedData = await extractCodeFiles(file);
       setExtractedFiles(parsedData);
@@ -32,43 +85,67 @@ export default function Upload({ onFilesProcessed }) {
     }
   };
 
-  // 2. The Standard Click Handler
   const handleFileChange = (event) => {
     processSelectedFile(event.target.files[0]);
   };
 
-  // 3. 🚀 The HTML5 Drag and Drop Handlers
-  const handleDragEnter = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true); // Turn on the visual highlight
-  };
-
-  const handleDragLeave = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false); // Turn off the visual highlight
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    // CRITICAL: We must prevent default here, otherwise the browser will open the .zip file in a new tab!
-  };
-
+  const handleDragEnter = (e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
+  const handleDragLeave = (e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };
+  const handleDragOver = (e) => { e.preventDefault(); e.stopPropagation(); };
   const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDragging(false); // Turn off the highlight
-
-    // Grab the dropped file from the OS and process it
+    setIsDragging(false);
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       processSelectedFile(e.dataTransfer.files[0]);
-      e.dataTransfer.clearData(); // Clean up memory
+      e.dataTransfer.clearData();
     }
   };
 
-  // 4. Trigger the transition to the Dashboard
+// -------------------------------------------------------------
+  // 2. GITHUB IMPORT LOGIC
+  // -------------------------------------------------------------
+  const handleGithubSubmit = async (e) => {
+    e.preventDefault();
+    if (!githubUrl.trim()) return;
+
+    setIsProcessing(true);
+    setError('');
+    setExtractedFiles([]); 
+
+    try {
+      const response = await ingestGitHubRepo(githubUrl);
+      
+      const mappedFiles = response.files.map(file => {
+        const safeContent = typeof file.content === 'string' ? file.content : "// No content extracted";
+        const calculatedLines = safeContent.split(/\r\n|\r|\n/).length;
+        
+        return {
+          fileName: file.path,
+          
+          // 🚀 THE FIX: Provide BOTH property names so Zip parsers and GitHub parsers align perfectly
+          content: safeContent, 
+          code: safeContent,    
+          
+          category: determineCategory(file.path),
+          lines: calculatedLines,
+          loc: calculatedLines,
+          linesOfCode: calculatedLines,
+          size: file.size
+        };
+      });
+
+      setExtractedFiles(mappedFiles);
+    } catch (err) {
+      setError(err.message || 'Failed to ingest repository from GitHub');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // -------------------------------------------------------------
+  // 3. PROCEED TO DASHBOARD
+  // -------------------------------------------------------------
   const handleSubmit = () => {
     if (extractedFiles.length > 0) {
       onFilesProcessed(extractedFiles);
@@ -84,41 +161,112 @@ export default function Upload({ onFilesProcessed }) {
           <p>Upload your project architecture for AI analysis.</p>
         </div>
 
-        {/* Hidden file input */}
-        <input 
-          type="file" 
-          ref={fileInputRef} 
-          className="file-input" 
-          accept=".zip,.py,.js,.jsx,.sql" 
-          onChange={handleFileChange}
-          style={{ display: 'none' }}
-        />
+        {/* 🚀 NEW: UI Toggle Tabs */}
+        <div className="upload-tabs" style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+          <button 
+            onClick={() => { setActiveTab('zip'); setError(''); }}
+            style={{ 
+              flex: 1, 
+              padding: '10px', 
+              background: activeTab === 'zip' ? 'var(--primary-accent)' : 'transparent',
+              color: activeTab === 'zip' ? '#fff' : 'var(--text-main)',
+              border: '1px solid var(--primary-accent)',
+              borderRadius: '6px',
+              cursor: 'pointer'
+            }}
+          >
+            📁 Upload.zip
+          </button>
+          <button 
+            onClick={() => { setActiveTab('github'); setError(''); }}
+            style={{ 
+              flex: 1, 
+              padding: '10px', 
+              background: activeTab === 'github' ? 'var(--primary-accent)' : 'transparent',
+              color: activeTab === 'github' ? '#fff' : 'var(--text-main)',
+              border: '1px solid var(--primary-accent)',
+              borderRadius: '6px',
+              cursor: 'pointer'
+            }}
+          >
+            <FaGithub style={{ marginRight: "6px" }} />
+            Import from GitHub
+          </button>
 
-        {/* 🚀 Updated Dropzone with the 4 drag events and dynamic class */}
-        <div 
-          className={`dropzone ${isDragging ? 'drag-active' : ''}`} 
-          onClick={() => fileInputRef.current.click()}
-          onDragEnter={handleDragEnter}
-          onDragLeave={handleDragLeave}
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
-        >
-          {isProcessing ? (
-            <p style={{ color: 'var(--primary-accent)' }}>Decompressing Archive in Memory...</p>
-          ) : (
-            <>
-              {/* Text changes dynamically when dragging! */}
-              <p>{isDragging ? 'Drop archive to ingest!' : 'Click to browse or drag a file here'}</p>
-              <span style={{ color: 'var(--text-muted)' }}>Accepts .zip, .py, .js, .jsx, .sql</span>
-            </>
-          )}
         </div>
 
-        {error && <p style={{ color: '#ef4444', marginBottom: '16px', fontSize: '14px' }}>{error}</p>}
+        {/* RENDER ZIP UI */}
+        {activeTab === 'zip' && (
+          <>
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              className="file-input" 
+              accept=".zip,.py,.js,.jsx,.sql" 
+              onChange={handleFileChange}
+              style={{ display: 'none' }}
+            />
+            <div 
+              className={`dropzone ${isDragging ? 'drag-active' : ''}`} 
+              onClick={() => fileInputRef.current.click()}
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+            >
+              {isProcessing ? (
+                <p style={{ color: 'var(--primary-accent)' }}>Decompressing Archive in Memory...</p>
+              ) : (
+                <>
+                  <p>{isDragging ? 'Drop archive to ingest!' : 'Click to browse or drag a file here'}</p>
+                  <span style={{ color: 'var(--text-muted)' }}>Accepts .zip, .py, .js, .jsx, .sql</span>
+                </>
+              )}
+            </div>
+          </>
+        )}
 
-        {/* Dynamic File Tree Preview (Untouched) */}
+        {/* RENDER GITHUB UI */}
+        {activeTab === 'github' && (
+          <form onSubmit={handleGithubSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+            <input 
+              type="text" 
+              placeholder="e.g., Saikrishna-dev-oss/ai-code-reviewer-agent-backend"
+              value={githubUrl}
+              onChange={(e) => setGithubUrl(e.target.value)}
+              disabled={isProcessing}
+              style={{
+                padding: '12px',
+                borderRadius: '6px',
+                border: '1px solid var(--border-color)',
+                background: 'var(--bg-dark)',
+                color: 'var(--text-main)'
+              }}
+            />
+            <button 
+              type="submit" 
+              disabled={isProcessing || !githubUrl.trim()}
+              style={{
+                padding: '12px',
+                borderRadius: '6px',
+                background: 'var(--primary-accent)',
+                color: '#fff',
+                border: 'none',
+                cursor: (isProcessing || !githubUrl.trim()) ? 'not-allowed' : 'pointer',
+                opacity: (isProcessing || !githubUrl.trim()) ? 0.7 : 1
+              }}
+            >
+              {isProcessing ? 'Fetching Architecture...' : 'Fetch Repository'}
+            </button>
+          </form>
+        )}
+
+        {/* Error Output */}
+        {error && <p style={{ color: '#ef4444', marginTop: '16px', fontSize: '14px' }}>{error}</p>}
+
+        {/* Dynamic File Tree Preview */}
         {extractedFiles.length > 0 && (
-          <div className="file-preview">
+          <div className="file-preview" style={{ marginTop: '20px' }}>
             <h3>Detected {extractedFiles.length} files</h3>
             <ul className="file-list">
               {extractedFiles.slice(0, 50).map((fileObj, index) => (
@@ -127,8 +275,6 @@ export default function Upload({ onFilesProcessed }) {
                   style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                 >
                   <span>{fileObj.fileName}</span>
-                  
-                  {/* Render the Category Badge */}
                   <span style={{ 
                     fontSize: '11px', 
                     padding: '2px 8px', 
@@ -139,7 +285,6 @@ export default function Upload({ onFilesProcessed }) {
                   }}>
                     {fileObj.category}
                   </span>
-                  
                 </li>
               ))}
               {extractedFiles.length > 50 && (
@@ -153,6 +298,7 @@ export default function Upload({ onFilesProcessed }) {
           className="submit-btn" 
           disabled={extractedFiles.length === 0 || isProcessing}
           onClick={handleSubmit}
+          style={{ marginTop: '20px' }}
         >
           Proceed to Architectural Dashboard →
         </button>

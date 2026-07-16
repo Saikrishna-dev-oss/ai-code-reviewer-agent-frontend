@@ -1,6 +1,6 @@
 // src/pages/review.jsx
 import { useState, useEffect } from 'react';
-import { fetchAiReview } from '../services/api'; // Import network service
+import { fetchAiReview } from '../services/api'; 
 import './review.css';
 
 export default function Review({ files, onReset }) {
@@ -9,11 +9,9 @@ export default function Review({ files, onReset }) {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // We define an async function inside useEffect to handle the network call
     const getReviewData = async () => {
       try {
         setLoading(true);
-        // We call our clean abstracted service here
         const data = await fetchAiReview(files);
         setAiResponse(data);
       } catch (err) {
@@ -33,7 +31,7 @@ export default function Review({ files, onReset }) {
       <div className="review-card">
         
         <div className="review-header">
-          <h2>AI Review Results</h2>
+          <h2>AI Architectural Review</h2>
           <button className="reset-btn" onClick={onReset}>
             Review Another Project
           </button>
@@ -55,9 +53,16 @@ export default function Review({ files, onReset }) {
           </div>
         ) : (
           <div className="output-box">
-            <span className="output-label">Agent Output</span>
-            <div className="output-text">
-              {JSON.stringify(aiResponse, null, 2)}
+            <span className="output-label">
+              {aiResponse?.status === 'mock' ? 'Agent Output (Mock Mode)' : 'Agent Output'}
+            </span>
+            <div className="output-text" style={{ 
+              whiteSpace: 'pre-wrap', 
+              lineHeight: '1.6',
+              fontFamily: 'var(--font-mono, monospace)',
+              fontSize: '14px'
+            }}>
+              {aiResponse?.review ? aiResponse.review : 'No review data returned.'}
             </div>
           </div>
         )}
