@@ -128,23 +128,124 @@ export default function CodeReviewer({ files = [], onExit, theme }) {
   // Safely get the chat history for the currently active file
   const currentChat = chatHistories[activeFileIndex] || [];
 
-  const handleSendMessage = () => {
-    if (!currentInput.trim()) return; 
+  const handleSendMessage = async () => {
+    if (!currentInput.trim() || !activeFile) return; 
 
-    const newMessage = { sender: 'You', text: currentInput };
+    // 1. Capture the text and clear the input box immediately for a snappy UI
+    const userText = currentInput;
+    const newMessage = { sender: 'You', text: userText };
+    setCurrentInput(''); 
+
+    // 2. Update the UI with your message AND a temporary "Typing..." bubble
+    const loadingMessage = { sender: 'Agent', text: 'Typing...' };
+    
     setChatHistories(prev => ({
       ...prev,
-      [activeFileIndex]: [...(prev[activeFileIndex] || []), newMessage]
+      [activeFileIndex]: [...(prev[activeFileIndex] || []), newMessage, loadingMessage]
     }));
-    setCurrentInput(''); 
+
+    try {
+      // 3. Package the history (making sure to include the message you just sent)
+      const currentHistory = chatHistories[activeFileIndex] || [];
+      const historyToSend = [...currentHistory, newMessage];
+
+      // 4. Fire the request to FastAPI
+      const response = await fetch('http://localhost:8000/api/review/file', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fileName: activeFile.fileName || activeFile.name,
+          content: activeFile.content || activeFile.code || '',
+          chatHistory: historyToSend 
+        }),
+      });
+
+      if (!response.ok) throw new Error('Network response was not ok');
+      
+      const data = await response.json();
+
+      // 5. Remove the "Typing..." bubble and replace it with the backend's response
+      setChatHistories(prev => {
+        const hist = prev[activeFileIndex] || [];
+        const historyWithoutLoading = hist.slice(0, -1); 
+        
+        return {
+          ...prev,
+          [activeFileIndex]: [...historyWithoutLoading, { sender: data.sender, text: data.text }]
+        };
+      });
+
+    } catch (error) {
+      console.error("Failed to send message:", error);
+      
+      setChatHistories(prev => {
+        const hist = prev[activeFileIndex] || [];
+        const historyWithoutLoading = hist.slice(0, -1);
+        return {
+          ...prev,
+          [activeFileIndex]: [...historyWithoutLoading, { sender: 'System', text: '❌ Error: Could not connect to the local FastAPI server.' }]
+        };
+      });
+    }
   };
 
-  const handleRequestReview = () => {
-    const newMessage = { sender: 'Agent', text: `Analyzing ${activeFile?.fileName || activeFile?.name}... (Backend connection pending)` };
+  const handleRequestReview = async () => {
+    if (!activeFile) return;
+
+    // 1. Instantly show a loading message in the chat
+    const loadingMessage = { sender: 'Agent', text: `Analyzing ${activeFile.fileName || activeFile.name}... (Connecting to backend)` };
+    
     setChatHistories(prev => ({
       ...prev,
-      [activeFileIndex]: [...(prev[activeFileIndex] || []), newMessage]
+      [activeFileIndex]: [...(prev[activeFileIndex] || []), loadingMessage]
     }));
+
+    try {
+      // 2. Fire the JSON payload across the network to FastAPI
+      const response = await fetch('http://localhost:8000/api/review/file', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fileName: activeFile.fileName || activeFile.name,
+          content: activeFile.content || activeFile.code || '',
+          chatHistory: chatHistories[activeFileIndex] || [] // Send the previous chat history
+        }),
+      });
+
+      if (!response.ok) throw new Error('Network response was not ok');
+      
+      // 3. Receive the AI's reply
+      const data = await response.json();
+
+      // 4. Swap the loading message with the real AI response
+      setChatHistories(prev => {
+        const currentHistory = prev[activeFileIndex] || [];
+        // Remove the temporary loading message
+        const historyWithoutLoading = currentHistory.slice(0, -1); 
+        
+        return {
+          ...prev,
+          [activeFileIndex]: [...historyWithoutLoading, { sender: data.sender, text: data.text }]
+        };
+      });
+
+    } catch (error) {
+      console.error("Failed to fetch review:", error);
+      
+      // Show an error message in the chat if the backend is down
+      setChatHistories(prev => {
+        const currentHistory = prev[activeFileIndex] || [];
+        const historyWithoutLoading = currentHistory.slice(0, -1);
+        return {
+          ...prev,
+          [activeFileIndex]: [...historyWithoutLoading, { sender: 'System', text: '❌ Error: Could not connect to the local FastAPI server.' }]
+        };
+      });
+    }
   };
 
   return (
