@@ -56,7 +56,7 @@
 }
 
 /* =========================================
-   PANE 1: EXPLORER (Your New Beautiful Style)
+   PANE 1: EXPLORER
    ========================================= */
 .file-explorer { 
   background: var(--explorer-bg); 
@@ -81,8 +81,8 @@
   font-size: 13px;
   color: inherit;
   user-select: none;
-  min-width: 100%; /* 🚀 Ensures hover effect covers at least the visible pane */
-  width: max-content; /* 🚀 Allows the row to stretch as far as the text needs */
+  min-width: 100%; /* Ensures hover effect covers at least the visible pane */
+  width: max-content; /* Allows the row to stretch as far as the text needs */
   transition: background-color 120ms ease, color 120ms ease;
 }
 
@@ -100,7 +100,6 @@
   white-space: nowrap;
   flex: 1;
   font-size: 13px;
-  /* 🚀 Deleted the overflow and text-overflow rules here */
 }
 
 /* Icons */
@@ -151,7 +150,7 @@
 
 
 /* =========================================
-   PANE 3: REVIEW THREAD (Restored & Fixed)
+   PANE 3: REVIEW THREAD
    ========================================= */
 .review-thread { 
   background: var(--explorer-bg); 
@@ -170,6 +169,7 @@
 .chat-message {
   display: flex;
   flex-direction: column;
+  max-width: 85%; /* Keeps bubbles from stretching all the way across */
 }
 
 .message-sender {
@@ -177,6 +177,11 @@
   margin-bottom: 4px;
   font-weight: bold;
   opacity: 0.7;
+}
+
+/* AI Messages stuck to the left */
+.ai-message {
+  align-self: flex-start;
 }
 
 .ai-message .message-bubble {
@@ -187,6 +192,16 @@
   font-size: 13px;
   line-height: 1.5;
   color: inherit;
+}
+
+/* User Messages pushed to the right */
+.user-message {
+  align-self: flex-end; 
+}
+
+/* Aligns the "You" text to the right side of the bubble */
+.user-message .message-sender {
+  align-self: flex-end;
 }
 
 .user-message .message-bubble {
