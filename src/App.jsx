@@ -6,8 +6,8 @@ import Login from './pages/login.jsx';
 import Register from './pages/register.jsx';
 import Upload from './pages/upload.jsx';
 import Dashboard from './pages/dashboard.jsx'; 
-import Review from './pages/review.jsx';
 import Profile from './pages/profile.jsx';
+import CodeReviewer from './pages/codeReviewer.jsx'; // Your new interactive screen
 
 export default function App() {
   const [currentStep, setCurrentStep] = useState('login');
@@ -67,7 +67,7 @@ export default function App() {
         );
       case 'dashboard':
         return (
-          // Rendering the new analytical dashboard. 
+          // Rendering the analytical dashboard. 
           // onProceed moves them forward to the AI review, onBack lets them re-upload.
           <Dashboard 
             files={uploadedFiles} 
@@ -75,15 +75,13 @@ export default function App() {
             onBack={() => setCurrentStep('upload')} 
           />
         );
-        // Inside App.jsx
       case 'review':
         return (
-          <Review 
+          // 🚀 THE SWAP: Rendering the new three-pane IDE layout
+          <CodeReviewer 
             files={uploadedFiles} 
-            onReset={() => {
-              setUploadedFiles([]);       // <--- 1. Clear the old data
-              setCurrentStep('upload');   // <--- 2. Send them back to the start
-            }} 
+            onExit={() => setCurrentStep('dashboard')} 
+            theme={theme}
           />
         );
       case 'profile':
@@ -111,7 +109,8 @@ export default function App() {
         {theme === 'dark' ? '☀️ Light' : '🌙 Dark'}
       </button>
 
-      {currentUser && (
+      {/* Conditionally hide the global header if we are in the immersive CodeReviewer view */}
+      {currentUser && currentStep !== 'review' && (
         <header style={{ 
           padding: '16px 32px', display: 'flex', justifyContent: 'space-between', 
           alignItems: 'center', borderBottom: '1px solid var(--border-color)' 
@@ -135,45 +134,38 @@ export default function App() {
                 ← Back to Upload
               </button>
             )}
-            {currentStep === 'review' && (
-              <button 
-                onClick={() => setCurrentStep('dashboard')} // Adjusted to go back to Dashboard
-                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '14px' }}
-              >
-                ← Back to Dashboard
-              </button>
-            )}
           </div>
 
           {/* Right Side of the Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-        
-        {/* 🚀 NEW: My Account Button */}
-        <button 
-          onClick={() => setCurrentStep('profile')} 
-          style={{ background: 'none', border: 'none', color: 'var(--primary-accent)', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }}
-        >
-          My Account
-        </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            
+            {/* My Account Button */}
+            <button 
+              onClick={() => setCurrentStep('profile')} 
+              style={{ background: 'none', border: 'none', color: 'var(--primary-accent)', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }}
+            >
+              My Account
+            </button>
 
-        <span style={{ color: 'var(--text-muted)', fontSize: '14px' }}>{currentUser.email}</span>
-        <img 
-          src={currentUser.profileImage} 
-          alt="Profile" 
-          style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--primary-accent)' }} 
-        />
-        <button 
-          onClick={handleLogout} 
-          style={{ background: 'none', border: '1px solid var(--border-color)', color: 'var(--text-main)', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer' }}
-        >
-          Logout
-        </button>
-      </div>
+            <span style={{ color: 'var(--text-muted)', fontSize: '14px' }}>{currentUser.email}</span>
+            <img 
+              src={currentUser.profileImage} 
+              alt="Profile" 
+              style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--primary-accent)' }} 
+            />
+            <button 
+              onClick={handleLogout} 
+              style={{ background: 'none', border: '1px solid var(--border-color)', color: 'var(--text-main)', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer' }}
+            >
+              Logout
+            </button>
+          </div>
 
         </header>
       )}
 
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      {/* We remove the flex-centering for the review step so the grid layout can consume the full screen */}
+      <div style={currentStep === 'review' ? { flex: 1 } : { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {renderScreen()}
       </div>
 
