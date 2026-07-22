@@ -54,7 +54,7 @@ export const fetchAiReview = async (files, onChunk) => {
 
 export const ingestGitHubRepo = async (repoUrl) => {
   try {
-    const response = await fetch('http://localhost:8000/api/ingest/github', {
+    const response = await fetch(`${API_BASE_URL}/api/ingest/github`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -71,5 +71,38 @@ export const ingestGitHubRepo = async (repoUrl) => {
   } catch (error) {
     console.error("GitHub Ingestion Error:", error);
     throw error;
+  }
+};
+
+/**
+ * Sends a single file's code and chat history to the AI for interactive Q&A.
+ * @param {string} fileName - The name of the active file.
+ * @param {string} content - The code content of the file.
+ * @param {Array} chatHistory - The array of previous messages.
+ * @returns {Promise<Object>} - The AI response object { sender, text }.
+ */
+export const fetchFileChat = async (fileName, content, chatHistory) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/review/file`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        fileName, 
+        content, 
+        chatHistory 
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Server error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data; // Returns { sender: "Agent", text: "..." }
+  } catch (error) {
+    console.error("Chat Fetch Error:", error);
+    throw new Error('Failed to send chat message.', { cause: error });
   }
 };

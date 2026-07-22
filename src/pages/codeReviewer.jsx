@@ -1,7 +1,12 @@
 // src/pages/CodeReviewer.jsx
 import { useState, useMemo } from 'react';
 import Editor from '@monaco-editor/react';
+import { fetchFileChat } from '../services/api';
 import './CodeReviewer.css';
+
+import ReactMarkdown from 'react-markdown';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 // 1. Helper to detect language from file extension
 const getLanguageFromExtension = (fileName) => {
@@ -149,22 +154,12 @@ export default function CodeReviewer({ files = [], onExit, theme }) {
       const currentHistory = chatHistories[activeFileIndex] || [];
       const historyToSend = [...currentHistory, newMessage];
 
-      // 4. Fire the request to FastAPI
-      const response = await fetch('http://localhost:8000/api/review/file', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          fileName: activeFile.fileName || activeFile.name,
-          content: activeFile.content || activeFile.code || '',
-          chatHistory: historyToSend 
-        }),
-      });
-
-      if (!response.ok) throw new Error('Network response was not ok');
-      
-      const data = await response.json();
+      // 4. Fire the request using our clean API bridge
+      const data = await fetchFileChat(
+        activeFile.fileName || activeFile.name,
+        activeFile.content || activeFile.code || '',
+        historyToSend
+      );
 
       // 5. Remove the "Typing..." bubble and replace it with the backend's response
       setChatHistories(prev => {
@@ -190,6 +185,68 @@ export default function CodeReviewer({ files = [], onExit, theme }) {
       });
     }
   };
+  // const handleSendMessage = async () => {
+  //   if (!currentInput.trim() || !activeFile) return; 
+
+  //   // 1. Capture the text and clear the input box immediately for a snappy UI
+  //   const userText = currentInput;
+  //   const newMessage = { sender: 'You', text: userText };
+  //   setCurrentInput(''); 
+
+  //   // 2. Update the UI with your message AND a temporary "Typing..." bubble
+  //   const loadingMessage = { sender: 'Agent', text: 'Typing...' };
+    
+  //   setChatHistories(prev => ({
+  //     ...prev,
+  //     [activeFileIndex]: [...(prev[activeFileIndex] || []), newMessage, loadingMessage]
+  //   }));
+
+  //   try {
+  //     // 3. Package the history (making sure to include the message you just sent)
+  //     const currentHistory = chatHistories[activeFileIndex] || [];
+  //     const historyToSend = [...currentHistory, newMessage];
+
+  //     // 4. Fire the request to FastAPI
+  //     const response = await fetch('http://localhost:8000/api/review/file', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify({
+  //         fileName: activeFile.fileName || activeFile.name,
+  //         content: activeFile.content || activeFile.code || '',
+  //         chatHistory: historyToSend 
+  //       }),
+  //     });
+
+  //     if (!response.ok) throw new Error('Network response was not ok');
+      
+  //     const data = await response.json();
+
+  //     // 5. Remove the "Typing..." bubble and replace it with the backend's response
+  //     setChatHistories(prev => {
+  //       const hist = prev[activeFileIndex] || [];
+  //       const historyWithoutLoading = hist.slice(0, -1); 
+        
+  //       return {
+  //         ...prev,
+  //         [activeFileIndex]: [...historyWithoutLoading, { sender: data.sender, text: data.text }]
+  //       };
+  //     });
+
+  //   } catch (error) {
+  //     console.error("Failed to send message:", error);
+      
+  //     setChatHistories(prev => {
+  //       const hist = prev[activeFileIndex] || [];
+  //       const historyWithoutLoading = hist.slice(0, -1);
+  //       return {
+  //         ...prev,
+  //         [activeFileIndex]: [...historyWithoutLoading, { sender: 'System', text: '❌ Error: Could not connect to the local FastAPI server.' }]
+  //       };
+  //     });
+  //   }
+  // };
 
   const handleRequestReview = async () => {
     if (!activeFile) return;
@@ -203,28 +260,16 @@ export default function CodeReviewer({ files = [], onExit, theme }) {
     }));
 
     try {
-      // 2. Fire the JSON payload across the network to FastAPI
-      const response = await fetch('http://localhost:8000/api/review/file', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          fileName: activeFile.fileName || activeFile.name,
-          content: activeFile.content || activeFile.code || '',
-          chatHistory: chatHistories[activeFileIndex] || [] // Send the previous chat history
-        }),
-      });
+      // 2. Fire the request using our clean API bridge
+      const data = await fetchFileChat(
+        activeFile.fileName || activeFile.name,
+        activeFile.content || activeFile.code || '',
+        chatHistories[activeFileIndex] || [] // Send the previous chat history
+      );
 
-      if (!response.ok) throw new Error('Network response was not ok');
-      
-      // 3. Receive the AI's reply
-      const data = await response.json();
-
-      // 4. Swap the loading message with the real AI response
+      // 3. Swap the loading message with the real AI response
       setChatHistories(prev => {
         const currentHistory = prev[activeFileIndex] || [];
-        // Remove the temporary loading message
         const historyWithoutLoading = currentHistory.slice(0, -1); 
         
         return {
@@ -236,7 +281,6 @@ export default function CodeReviewer({ files = [], onExit, theme }) {
     } catch (error) {
       console.error("Failed to fetch review:", error);
       
-      // Show an error message in the chat if the backend is down
       setChatHistories(prev => {
         const currentHistory = prev[activeFileIndex] || [];
         const historyWithoutLoading = currentHistory.slice(0, -1);
@@ -313,7 +357,36 @@ export default function CodeReviewer({ files = [], onExit, theme }) {
           {currentChat.map((msg, idx) => (
             <div key={idx} className={`chat-message ${msg.sender === 'Agent' ? 'ai-message' : 'user-message'}`}>
               <span className="message-sender">{msg.sender}</span>
-              <div className="message-bubble">{msg.text}</div>
+              <div className="message-bubble">
+                {msg.sender === 'Agent' ? (
+                  <ReactMarkdown
+                    components={{
+                      code({inline, className, children, ...props }) {
+                        const match = /language-(\w+)/.exec(className || '');
+                        return !inline && match ? (
+                          <SyntaxHighlighter
+                            {...props}
+                            style={vscDarkPlus}
+                            language={match[1]}
+                            PreTag="div"
+                            customStyle={{ borderRadius: '6px', margin: '8px 0', fontSize: '13px' }}
+                          >
+                            {String(children).replace(/\n$/, '')}
+                          </SyntaxHighlighter>
+                        ) : (
+                          <code {...props} className={className} style={{ backgroundColor: 'rgba(255,255,255,0.1)', padding: '2px 4px', borderRadius: '4px' }}>
+                            {children}
+                          </code>
+                        );
+                      }
+                    }}
+                  >
+                    {msg.text}
+                  </ReactMarkdown>
+                ) : (
+                  msg.text /* User messages remain plain text */
+                )}
+              </div>
             </div>
           ))}
         </div>

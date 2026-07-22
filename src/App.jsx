@@ -50,10 +50,20 @@ export default function App() {
               setCurrentStep('upload');
             }} 
             onSwitchToRegister={() => setCurrentStep('register')} 
+            // 🚀 PASSING PROPS HERE
+            theme={theme}
+            toggleTheme={toggleTheme}
           />
         );
       case 'register':
-        return <Register onSwitchToLogin={() => setCurrentStep('login')} />;
+        return (
+          <Register 
+            onSwitchToLogin={() => setCurrentStep('login')} 
+            // 🚀 PASSING PROPS HERE
+            theme={theme}
+            toggleTheme={toggleTheme}
+          />
+        );
       case 'upload':
         return (
           <Upload 
@@ -94,20 +104,19 @@ export default function App() {
           />
         );
       default:
-        return <Login onLoginSuccess={() => setCurrentStep('upload')} />;
+        return (
+          <Login 
+            onLoginSuccess={() => setCurrentStep('upload')} 
+            // 🚀 PASSING PROPS HERE AS WELL (for the default fallback case)
+            theme={theme}
+            toggleTheme={toggleTheme}
+          />
+        );
     }
   };
 
   return (
     <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <button
-        type="button"
-        className="theme-toggle-btn"
-        onClick={toggleTheme}
-        aria-label="Toggle dark and light theme"
-      >
-        {theme === 'dark' ? '☀️ Light' : '🌙 Dark'}
-      </button>
 
       {/* Conditionally hide the global header if we are in the immersive CodeReviewer view */}
       {currentUser && currentStep !== 'review' && (

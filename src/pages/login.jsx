@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import './login.css';
 
-export default function Login({ onLoginSuccess, onSwitchToRegister }) {
+export default function Login({ onLoginSuccess, onSwitchToRegister, theme, toggleTheme }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -14,14 +14,12 @@ export default function Login({ onLoginSuccess, onSwitchToRegister }) {
     setIsAuthenticating(true);
 
     try {
-      
       const response = await fetch(`http://localhost:8000/users?email=${email}&password=${password}`);
       
       if (!response.ok) throw new Error('Network response was not ok');
       
       const users = await response.json();
       if (users.length > 0) {
-        
         onLoginSuccess(users[0]);
       } else {
         setError('Invalid email or password. Please try again.');
@@ -35,51 +33,64 @@ export default function Login({ onLoginSuccess, onSwitchToRegister }) {
   };
 
   return (
-    <div className="login-wrapper">
-      <div className="login-card">
-        <div className="login-header">
-          <h1>AI Code Reviewer</h1>
-          <p>Authenticate to access the agent</p>
-        </div>
+    <main style={{ minHeight: '100vh', width:'100%', display: 'flex', flexDirection: 'column' }}>
+      
+      {/* Theme Toggle Button */}
+      <button
+        type="button"
+        className="theme-toggle-btn"
+        onClick={toggleTheme}
+        aria-label="Toggle dark and light theme"
+      >
+        {theme === 'dark' ? '☀️ Light' : '🌙 Dark'}
+      </button>
 
-        <form className="login-form" onSubmit={handleSubmit}>
-          
-          <div className="input-group">
-            <label htmlFor="email">Email</label>
-            <input 
-              type="email" id="email" className="login-input" 
-              placeholder="developer@example.com" value={email}
-              onChange={(e) => setEmail(e.target.value)} required
-            />
+      <div className="login-wrapper">
+        <div className="login-card">
+          <div className="login-header">
+            <h1>AI Code Reviewer</h1>
+            <p>Authenticate to access the agent</p>
           </div>
 
-          <div className="input-group">
-            <label htmlFor="password">Password</label>
-            <input 
-              type="password" id="password" className="login-input" 
-              placeholder="••••••••" value={password}
-              onChange={(e) => setPassword(e.target.value)} required
-            />
+          <form className="login-form" onSubmit={handleSubmit}>
+            
+            <div className="input-group">
+              <label htmlFor="email">Email</label>
+              <input 
+                type="email" id="email" className="login-input" 
+                placeholder="developer@example.com" value={email}
+                onChange={(e) => setEmail(e.target.value)} required
+              />
+            </div>
+
+            <div className="input-group">
+              <label htmlFor="password">Password</label>
+              <input 
+                type="password" id="password" className="login-input" 
+                placeholder="••••••••" value={password}
+                onChange={(e) => setPassword(e.target.value)} required
+              />
+            </div>
+
+            {/* Display authentication errors */}
+            {error && <p style={{ color: '#ef4444', fontSize: '14px', marginTop: '8px' }}>{error}</p>}
+
+            <button type="submit" className="login-button" disabled={isAuthenticating}>
+              {isAuthenticating ? 'Verifying...' : 'Login'}
+            </button>
+            
+          </form>
+
+          <div style={{ textAlign: 'center', marginTop: '16px' }}>
+            <button 
+              type="button" onClick={onSwitchToRegister} 
+              style={{ background: 'none', border: 'none', color: 'var(--primary-accent)', cursor: 'pointer', fontSize: '14px' }}
+            >
+              Don't have an account? <b style={{ color: 'var(--primary-accent)' }}>Register</b>
+            </button>
           </div>
-
-          {/* Display authentication errors */}
-          {error && <p style={{ color: '#ef4444', fontSize: '14px', marginTop: '8px' }}>{error}</p>}
-
-          <button type="submit" className="login-button" disabled={isAuthenticating}>
-            {isAuthenticating ? 'Verifying...' : 'Login'}
-          </button>
-          
-        </form>
-
-        <div style={{ textAlign: 'center', marginTop: '16px' }}>
-          <button 
-            type="button" onClick={onSwitchToRegister} 
-            style={{ background: 'none', border: 'none', color: 'var(--primary-accent)', cursor: 'pointer', fontSize: '14px' }}
-          >
-            Don't have an account? <b style={{ color: 'var(--primary-accent)' }}>Register</b>
-          </button>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
